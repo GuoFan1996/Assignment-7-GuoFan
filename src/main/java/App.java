@@ -130,6 +130,11 @@ public class App {
                 }
 
             case "2":
+                System.out.println();
+                System.out.println("-----Please input your user name: ");
+                String newName = s.next();
+                System.out.println("-----Please input your password: ");
+                String newPassword = s.next();
 
 
         }
