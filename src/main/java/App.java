@@ -14,15 +14,16 @@ public class App {
     private Library library;
     private static Connection connection;
     private static Statement statement;
+    static Scanner s;
     //create a database and 6 tables. Store some data in it.
-    public static void setupSQLite() {
+    public static void setupSQLite() throws SQLException {
         connection = null;
         try {
             // create a database connection
             connection = DriverManager.getConnection("jdbc:sqlite:music.db");
             statement = connection.createStatement();
             statement.setQueryTimeout(30);  // set timeout to 30 sec.
-            // create 6 tables
+            //create 6 tables
             statement.executeUpdate("drop table if exists users");
             statement.executeUpdate("drop table if exists playlists");
             statement.executeUpdate("drop table if exists playlists_contents");
@@ -38,51 +39,132 @@ public class App {
             statement.executeUpdate("create table artists (artist_id integer primary key autoincrement, name string not null)");
 
             //insert 2 users
-            statement.executeUpdate("insert into users (user_name, password) values('Guo Fan')");
-            statement.executeUpdate("insert into users (user_name, password) values('Yiyang Zhang')");
-
-            //
-//            statement.executeUpdate("insert into person values(2, 'yui')");
-
-//            ResultSet rs = statement.executeQuery("select * from person");
-//            while (rs.next()) {
-//                // read the result set
-//                System.out.println("name = " + rs.getString("name"));
-//                System.out.println("id = " + rs.getInt("id"));
-//
-//            }
-        } catch (SQLException e) {
-            // if the error message is "out of memory",
-            // it probably means no database file is found
-            System.err.println(e.getMessage());
-        } finally {
-            try {
-                if (connection != null)
-                    connection.close();
-            } catch (SQLException e) {
-                // connection close failed.
-                System.err.println(e.getMessage());
-            }
-        }
-    }
-
-    public Boolean checkUserPassword(String name,String password) throws SQLException {
-        try {
-            ResultSet res = statement.executeQuery("select password from users where user_name = " + name);
-            Array ans = res.getArray("password");
-            String realPassword = ans.toString();
-            if (realPassword.equals(password)) {
-                System.out.println("Welcome back! "+name);
-                return true;
-            } else {
-                System.out.println("Either User name or password is incorrect");
-                return false;
-            }
+            statement.executeUpdate("insert into users (user_name, password) values('Guo Fan','guofan1996')");
+            statement.executeUpdate("insert into users (user_name, password) values('Yiyang Zhang','yiyang1997')");
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
+
+        //check if username already existed.
+    public static Boolean checkUserName(String name) {
+        try {
+            ResultSet res = statement.executeQuery("select password from users where user_name = '" + name+"'");
+            if (res.next()) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    //check if the username and password are correct
+    public static Boolean checkUserPassword(String name, String password) throws SQLException {
+
+            ResultSet res = statement.executeQuery("select password from users where user_name = '" + name+"'");
+            if (res.next()) {
+                String realPassword = res.getString("password");
+                if (realPassword.equals(password)) {
+                    System.out.println("-----Welcome back! "+name);
+                    return true;
+                } else {
+                    System.out.println("-----Your password is incorrect.");
+                    return false;
+                }
+            }else {
+                System.out.println("-----This username doesn't exist.");
+                return false;
+            }
+
+    }
+
+    public static void logIn() throws SQLException {
+        System.out.println("-----Please input your user name: ");
+        String name = s.nextLine();
+        System.out.println("-----Please input your password: ");
+        String pswd = s.nextLine();
+        Boolean passwordCorrect = checkUserPassword(name,pswd);
+       if (!passwordCorrect){
+            System.out.println(
+                    "1. Retry-----please input 1\n" +
+                    "2. Sign up-----please input 2\n"+
+                    "3. Exit-----please input 3"
+            );
+            String ans = s.nextLine();
+            switch (ans) {
+                case "1":
+                    logIn();
+                    break;
+                case "2":
+                    signUp();
+                    break;
+                case "3":
+                    s.close();
+                    break;
+            }
+        }
+    }
+
+    public static void signUp() throws SQLException {
+        System.out.println("-----Please input your user name: ");
+        String user_name = s.nextLine();
+        System.out.println("-----Please input your password: ");
+        String pasw = s.nextLine();
+        Boolean userNameExist = checkUserName(user_name);
+
+        if (userNameExist) {
+            System.out.println("-----This user name has already existed.");
+            System.out.println(
+                    "1. Retry-----please input 1\n" +
+                    "2. Log in-----please input 2\n"+
+                    "3. Exit-----please input 3"
+            );
+            switch (s.nextLine()) {
+                case "1":
+                    signUp();
+                    break;
+                case "2":
+                    logIn();
+                    break;
+                case "3":
+                    s.close();
+                    break;
+            }
+        }
+        // insert a new user into users
+        if (!userNameExist) {
+            statement.executeUpdate("insert into users (user_name, password) values('" +user_name+"', '"+pasw+"')");
+            System.out.println("----------------------Congratulations! you signed up successfully.----------------------");
+        }
+    }
+
+    public void afterLoginOrSignup(){
+        System.out.println(
+                "1. Search a song-----please input 1\n" +
+                "2. Search an album-----please input 2\n"+
+                "3. Search an artist-----please input 3\n"+
+                "4. Show playlists-----please input 4\n"+
+                "5. Make a new playlist-----please input 5\n"+
+                "6. Exit-----please input 6)"
+        );
+        String ans = s.nextLine();
+        switch(ans) {
+            case "1":
+            case "2":
+            case "3":
+            case "4":
+            case "5":
+            case "6":
+                s.close();
+                break;
+        }
+    }
+
+    //search a song in db, if it doesn't exist, fetch info from musicBrainz.
+
 
     //give a URL , return a document
     public static Document MusicBrainz(String initialURL) {
@@ -108,35 +190,24 @@ public class App {
 
     public static void main(String[] args) throws SQLException {
         App app = new App();
-        app.library=new Library();
         app.setupSQLite();
 
+        s = new Scanner(System.in);
 
-        Scanner s = new Scanner(System.in);
+        //log in or sign up
         System.out.println("---------------------------------Welcome to use Music App---------------------------------");
-        System.out.println("1. Log in-----please input 1" +
-                "/n" +
+        System.out.println("1. Log in-----please input 1\n" +
                 "2. Sign up-----please input 2");
-        switch (s.next()){
-            case "1":
-                System.out.println("-----Please input your user name: ");
-                String user_name = s.next();
-                System.out.println("-----Please input your password: ");
-                String password = s.next();
-                Boolean passwordCorrect = app.checkUserPassword(user_name,password);
-                Boolean retry = true;
-                while (!passwordCorrect && retry){
-
-                }
-
-            case "2":
-                System.out.println();
-                System.out.println("-----Please input your user name: ");
-                String newName = s.next();
-                System.out.println("-----Please input your password: ");
-                String newPassword = s.next();
-
-
+        String ans = s.nextLine();
+        if (ans.equals("1")) {
+            app.logIn();
+            app.afterLoginOrSignup();
+        }else if(ans.equals("2")) {
+            app.signUp();
+            app.afterLoginOrSignup();
+        }else{
+            System.out.println("wrong input");
+            s.close();
         }
 
     }
