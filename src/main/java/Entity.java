@@ -8,25 +8,22 @@ import java.util.Date;
 public class Entity {
     protected String name;
     protected static int counter = 0;
-    protected int entityID;
+    protected String musicBrainzeID;
     protected Date dateCreated;
+    protected int dbID;
 
     public Entity() {
-        this.name = "";
-        counter++;
-        this.entityID = counter;
+        this.name="null";
         dateCreated = new Date();
     }
 
     public boolean equals(Entity otherEntity) {
-        return entityID == otherEntity.entityID;
+        return musicBrainzeID == otherEntity.musicBrainzeID;
     }
 
 
     public Entity(String name) {
         this.name = name;
-        counter++;
-        this.entityID = counter;
         dateCreated = new Date();
     }
 
@@ -47,10 +44,10 @@ public class Entity {
     }
 
     public String toString() {
-        return "Name: " + this.name + " Entity ID: " + this.entityID;
+        return "Name: " + this.name;
     }
     public String toXML() {
-        return "<entity><name>" + this.name + "</name><ID> " + this.entityID + "</ID></entity>";
+        return "<entity><name>" + this.name + "</name><ID> " + this.musicBrainzeID + "</ID></entity>";
     }
 }
 

@@ -3,6 +3,10 @@
  * CS 514
  * My repo is GuoFan1996
  */
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -16,16 +20,19 @@ public class Song extends Entity implements Comparable<Song> {
     protected Boolean hasBeenPlayed;
     protected String mood;
 
-    public Song(String name) {
-        super(name);
-        album = new Album(null);
-        performer = new Artist(null);
-        duration = new SongInterval();
-        genre = "";
-        likes = 0;
+    public Song() {
+        super();
+        this.album=new Album();
+        this.performer=new Artist();
     }
 
-    public Song(String name,int likes,int BPM,String genre,String mood,Boolean hasBeenPlayed) {
+    public Song(String name) {
+        super(name);
+        this.album=new Album();
+        this.performer=new Artist();
+    }
+
+    public Song(String name, int likes, int BPM, String genre, String mood, Boolean hasBeenPlayed) {
         super(name);
         this.likes = likes;
         this.BPM = BPM;
@@ -127,8 +134,21 @@ public class Song extends Entity implements Comparable<Song> {
     }
 
     public String toString() {
-        return super.toString() + " " + this.performer + " " + this.album + " " + this.duration;
+        String res = super.toString() +"\nartist: ";
 
+        if (this.performer.name.equals("null")) {
+            res = res+"Null";
+        }else {
+            res = res + this.performer.name;
+        }
+        res = res + "\nalbum: ";
+
+        if (this.album.name.equals("null")) {
+            res = res+"Null";
+        }else {
+            res = res + this.album.name;
+        }
+        return res;
     }
 
     public String toXML(){
@@ -136,24 +156,42 @@ public class Song extends Entity implements Comparable<Song> {
                 + "</artist>\n<album>"+ album.getName() +"</album>\n</song>";
     }
 
+    //parse XML to find musicBrainzeID and artist.
+    public void fromXML(Document document){
+        Node recording = document.getElementsByTagName("recording").item(0);
+        String recordingID = recording.getAttributes().getNamedItem("id").getNodeValue();
+        this.musicBrainzeID = recordingID;
+    }
+
     public int compareTo(Song other) {
         return Integer.compare(this.likes,other.likes);
     }
 
     public String toSQL() {
-        return "insert into songs (id, name, album, artist) values (" + this.entityID + ", '" + this.name + "', " + album.entityID + ", "
-                + performer.entityID  + ");";
+        String query = "insert into songs (name, artist_id, album_id) values ('" +
+                this.name.toLowerCase() +
+                "', " + performer.dbID +
+                ", " +
+                album.dbID
+                + ");";
+        return query;
     }
 
     public void fromSQL(ResultSet rs) {
         try {
-            this.entityID = rs.getInt("id");
+            this.dbID = rs.getInt("song_id");
             this.name = rs.getString("name");
-            this.performer.entityID = rs.getInt("artist");
-            this.album.entityID = rs.getInt("album");
+            this.performer.dbID = rs.getInt("artist");
+            this.album.dbID = rs.getInt("album");
         } catch(SQLException e) {
             System.out.println("SQL Exception" + e.getMessage());
         }
 
+    }
+
+    public String createURL(String songTitle) {
+        //https://musicbrainz.org/ws/2/recording?query=as%20long%20as%20you%20love%20me&fmt=xml
+        String url = "https://musicbrainz.org/ws/2/recording?query="+songTitle.replaceAll(" ","%20")+"&fmt=xml";
+        return url;
     }
 }

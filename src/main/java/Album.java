@@ -3,6 +3,9 @@
  * CS 514
  * My repo is GuoFan1996
  */
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -11,8 +14,16 @@ public class Album extends Entity {
     protected ArrayList<Song> songs;
     protected Artist artist;
 
+    public Album() {
+        super();
+        this.songs = new ArrayList<>();
+        this.artist=new Artist();
+    }
+
     public Album(String name) {
         super(name);
+        this.songs = new ArrayList<>();
+        this.artist=new Artist();
     }
 
     public String getName() {
@@ -47,19 +58,53 @@ public class Album extends Entity {
         this.artist = artist;
     }
     public String toSQL() {
-        return "insert into albums (id, name, nSongs, artist) values (" + this.entityID + ", '" + this.name + "', " + songs.size() + ", "
-                + artist.entityID  + ");";
+        return "insert into albums (name, artist_id) values ('" + this.name + "', " + this.artist.dbID + ");";
+    }
+
+    public String toString() {
+        String res = super.toString() +"\nartist: ";
+
+        if (this.artist.equals("null")) {
+            res = res+"Null";
+        }else {
+            res = res + this.artist.name+ " ";
+        }
+        res = res + "\nsongs: ";
+
+        if (this.songs.isEmpty()) {
+            res = res+"Null";
+        }else {
+            for (Song s: this.songs) {
+                res = res + s.name +" ";
+            }
+        }
+        return res;
     }
 
     public void fromSQL(ResultSet rs) {
         try {
-            this.entityID = rs.getInt("id");
+            this.dbID = rs.getInt("album_id");
             this.name = rs.getString("name");
-            this.artist.entityID=rs.getInt("artist");
+            this.artist.dbID=rs.getInt("artist");
         } catch(SQLException e) {
             System.out.println("SQL Exception" + e.getMessage());
         }
 
+    }
+
+    public String createURL(String albumName) {
+        String url = "https://musicbrainz.org/ws/2/release?query="+albumName.strip().replaceAll(" ","%20")+"&fmt=xml";
+        return url;
+    }
+
+    public void fromXML(Document document){
+        NodeList artists = document.getElementsByTagName("artist-list");
+        /* let's assume that the one we want is first. */
+//        Node beatlesNode = artists.item(0).getFirstChild();
+//        Node beatlesIDNode = beatlesNode.getAttributes().getNamedItem("id");
+//        String id = beatlesIDNode.getNodeValue();
+//
+//        System.out.println(id);
     }
 }
 
