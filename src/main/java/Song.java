@@ -136,17 +136,11 @@ public class Song extends Entity implements Comparable<Song> {
     public String toString() {
         String res = super.toString() +"\nartist: ";
 
-        if (this.performer.name.equals("null")) {
-            res = res+"Null";
-        }else {
-            res = res + this.performer.name;
-        }
-        res = res + "\nalbum: ";
-
-        if (this.album.name.equals("null")) {
-            res = res+"Null";
-        }else {
-            res = res + this.album.name;
+        try {
+            res = res + this.performer.name + "\n";
+            res = res+ this.album.name + "\n";
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return res;
     }
@@ -160,7 +154,12 @@ public class Song extends Entity implements Comparable<Song> {
     public void fromXML(Document document){
         Node recording = document.getElementsByTagName("recording").item(0);
         String recordingID = recording.getAttributes().getNamedItem("id").getNodeValue();
+        NodeList artistnodes = recording.getChildNodes().item(2).getFirstChild().getChildNodes();
+        String artistName = artistnodes.item(0).getTextContent();
+        String artistID = artistnodes.item(1).getAttributes().getNamedItem("id").getNodeValue();
         this.musicBrainzeID = recordingID;
+        this.performer.name = artistName;
+        this.performer.musicBrainzeID = artistID;
 
     }
 

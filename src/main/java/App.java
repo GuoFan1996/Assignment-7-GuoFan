@@ -210,6 +210,7 @@ public class App {
     public Song searchSong() {
         System.out.println("-----Please input song title: ");
         String songTitle = s.nextLine().toLowerCase();
+
         try {
             Song song = new Song(songTitle);
             ResultSet res = statement.executeQuery("select * from songs where name = '" + songTitle+"'");
@@ -223,8 +224,12 @@ public class App {
                 String url = song.createURL(songTitle);
                 Document doc = MusicBrainz(url);
                 song.fromXML(doc);
-                String query = song.toSQL();
-                statement.executeUpdate(query);//store song in db
+                String query1 = song.performer.toSQL();
+                statement.executeUpdate(query1);
+                ResultSet r = statement.executeQuery("select * from artists where name = '"+song.performer.name+"'");
+                song.performer.dbID = r.getInt("artist_id");
+                String query2 = song.toSQL();
+                statement.executeUpdate(query2);//store song in db
             }
             library.addSong(song);
             return song;
@@ -348,6 +353,7 @@ public class App {
 
         return null;
     }
+
 
     public static void main(String[] args) throws SQLException {
         App app = new App();
