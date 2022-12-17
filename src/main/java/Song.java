@@ -161,6 +161,7 @@ public class Song extends Entity implements Comparable<Song> {
         Node recording = document.getElementsByTagName("recording").item(0);
         String recordingID = recording.getAttributes().getNamedItem("id").getNodeValue();
         this.musicBrainzeID = recordingID;
+
     }
 
     public int compareTo(Song other) {

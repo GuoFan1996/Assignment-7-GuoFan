@@ -5,15 +5,34 @@
   <groupId>org.example</groupId>
   <artifactId>Assignment-7-Guo-Fan2</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <build>
+
+  <reporting>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>11</source>
-          <target>11</target>
-        </configuration>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>3.4.1</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>index</report>
+              <report>licenses</report>
+              <report>dependency-info</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <build>
+    <plugins>
+      <!-- Part of Maven - specified version explicitly for compatibility
+           with the maven-project-info-reports-plugin 3.0.0-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.3</version>
       </plugin>
     </plugins>
   </build>
@@ -45,5 +64,11 @@
       <artifactId>sqlite-jdbc</artifactId>
       <version>3.40.0.0</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.maven.doxia</groupId>
+      <artifactId>doxia-site-renderer</artifactId>
+      <version>1.4</version>
+    </dependency>
+
   </dependencies>
 </project>
